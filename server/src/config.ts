@@ -1,3 +1,5 @@
+import { resolve } from 'node:path';
+
 function required(name: string, fallback?: string): string {
   const value = process.env[name] ?? fallback;
   if (value === undefined) {
@@ -22,6 +24,9 @@ export const config = {
   sseHeartbeatMs: Number(process.env.SSE_HEARTBEAT_MS ?? 25_000),
   /** Через сколько EventSource переподключается после обрыва. */
   sseRetryMs: Number(process.env.SSE_RETRY_MS ?? 3_000),
+
+  /** Каталог со сборкой фронтенда. Пусто — сервер отдает только API. */
+  webDist: process.env.WEB_DIST ?? resolve(process.cwd(), '..', 'web', 'dist'),
 };
 
 export type Config = typeof config;

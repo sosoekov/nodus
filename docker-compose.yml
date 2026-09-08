@@ -17,7 +17,9 @@ services:
 
   api:
     build:
-      context: ./server
+      # Контекст — корень репозитория: образ собирает и фронтенд тоже.
+      context: .
+      dockerfile: server/Dockerfile
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER:-nodus}:${POSTGRES_PASSWORD:-nodus}@db:5432/${POSTGRES_DB:-nodus}
       SESSION_SECRET: ${SESSION_SECRET:?укажите SESSION_SECRET в .env}

@@ -10,6 +10,7 @@ import { eventRoutes } from './routes/events';
 import { lockRoutes } from './routes/locks';
 import { mechanismRoutes } from './routes/mechanisms';
 import { objectRoutes } from './routes/objects';
+import { spaRoutes } from './routes/spa';
 
 /** Ограничения БД — часть контракта, а не «внутренняя ошибка»: переводим их в 4xx. */
 const PG_ERROR_STATUS: Record<string, { status: number; code: string; message: string }> = {
@@ -64,6 +65,9 @@ export async function buildApp(): Promise<FastifyInstance> {
     await pool.query('SELECT 1');
     return { ok: true };
   });
+
+  // Последним: он ставит обработчик 404 для клиентской маршрутизации.
+  await app.register(spaRoutes);
 
   return app;
 }
