@@ -24,7 +24,7 @@ beforeEach(async () => {
 });
 
 describe('создание объектов', () => {
-  it('создаёт объект со статусом stub и версией 1', async () => {
+  it('создает объект со статусом stub и версией 1', async () => {
     const response = await editor.post('/api/objects', {
       type_code: 'Документ',
       name: 'Заявка на подбор',
@@ -41,7 +41,7 @@ describe('создание объектов', () => {
     });
   });
 
-  it('разводит слаги при совпадении полных имён', async () => {
+  it('разводит слаги при совпадении полных имен', async () => {
     const first = await createObject(editor, { full_name: 'Константа.Норма' });
     const second = await createObject(editor, { full_name: 'Константа.Норма' });
 
@@ -102,7 +102,7 @@ describe('инвариант двух уровней', () => {
     expect(child.parent_id).toBe(parent.id);
   });
 
-  it('не даёт завести реквизит реквизита', async () => {
+  it('не дает завести реквизит реквизита', async () => {
     const parent = await createObject(editor, { type_code: 'Документ', full_name: 'Документ.А' });
     const child = await createObject(editor, {
       type_code: 'Реквизит',
@@ -112,14 +112,14 @@ describe('инвариант двух уровней', () => {
 
     const response = await editor.post('/api/objects', {
       type_code: 'Реквизит',
-      name: 'Ещё глубже',
+      name: 'Еще глубже',
       parent_id: child.id,
     });
 
     expect(response.status).toBe(400);
   });
 
-  it('не даёт подчинить объект, у которого уже есть реквизиты', async () => {
+  it('не дает подчинить объект, у которого уже есть реквизиты', async () => {
     const parent = await createObject(editor, { type_code: 'Документ', full_name: 'Документ.А' });
     await createObject(editor, { type_code: 'Реквизит', name: 'Реквизит', parent_id: parent.id });
 
@@ -151,7 +151,7 @@ describe('оптимистичная блокировка', () => {
     expect(entries.map((entry) => entry.op)).toEqual(['create', 'update']);
   });
 
-  it('на устаревшей версии отдаёт 409 с текущим состоянием', async () => {
+  it('на устаревшей версии отдает 409 с текущим состоянием', async () => {
     const object = await createObject(editor);
     await editor.patch(`/api/objects/${object.id}`, { version: 1, name: 'Первый' });
 
@@ -183,7 +183,7 @@ describe('оптимистичная блокировка', () => {
     expect(response.status).toBe(400);
   });
 
-  it('на несуществующем объекте отдаёт 404, а не 409', async () => {
+  it('на несуществующем объекте отдает 404, а не 409', async () => {
     const response = await editor.patch(
       '/api/objects/00000000-0000-4000-8000-000000000000',
       { version: 1, name: 'Никто' },
@@ -216,15 +216,15 @@ describe('мягкое удаление', () => {
     expect(entries[1].payload.deleted_at).not.toBeNull();
   });
 
-  it('на устаревшей версии отдаёт 409', async () => {
+  it('на устаревшей версии отдает 409', async () => {
     const object = await createObject(editor);
-    await editor.patch(`/api/objects/${object.id}`, { version: 1, name: 'Изменён' });
+    await editor.patch(`/api/objects/${object.id}`, { version: 1, name: 'Изменен' });
 
     const response = await editor.del(`/api/objects/${object.id}?version=1`);
     expect(response.status).toBe(409);
   });
 
-  it('повторное удаление отдаёт 404', async () => {
+  it('повторное удаление отдает 404', async () => {
     const object = await createObject(editor);
     await editor.del(`/api/objects/${object.id}?version=1`);
 
@@ -313,7 +313,7 @@ describe('поиск и фильтры', () => {
 });
 
 describe('массовая вставка', () => {
-  it('создаёт список объектов одной транзакцией', async () => {
+  it('создает список объектов одной транзакцией', async () => {
     const response = await editor.post('/api/objects/bulk', {
       items: [
         { type_code: 'Документ', name: 'ЗаявкаНаПодбор', full_name: 'Документ.ЗаявкаНаПодбор' },
@@ -359,7 +359,7 @@ describe('массовая вставка', () => {
 });
 
 describe('карточка объекта', () => {
-  it('отдаёт реквизиты и механизмы, сгруппированные по ролям', async () => {
+  it('отдает реквизиты и механизмы, сгруппированные по ролям', async () => {
     const document = await createObject(editor, {
       type_code: 'Документ',
       name: 'Заявка',
@@ -381,7 +381,7 @@ describe('карточка объекта', () => {
       version: mechanism.version,
       participants: [
         { object_id: constant.id, role_code: 'ЗначениеПоУмолчанию' },
-        { object_id: document.id, role_code: 'Приёмник', note: 'реквизит СрокПодбора' },
+        { object_id: document.id, role_code: 'Приемник', note: 'реквизит СрокПодбора' },
       ],
     });
 
@@ -393,7 +393,7 @@ describe('карточка объекта', () => {
     expect(card.children).toHaveLength(1);
     expect(card.mechanisms_by_role).toHaveLength(1);
     expect(card.mechanisms_by_role[0]).toMatchObject({
-      role_code: 'Приёмник',
+      role_code: 'Приемник',
       direction: 'target',
     });
     expect(card.mechanisms_by_role[0].mechanisms).toMatchObject([

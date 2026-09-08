@@ -24,10 +24,10 @@ beforeEach(async () => {
 });
 
 describe('CRUD механизмов', () => {
-  it('создаёт механизм черновиком', async () => {
+  it('создает механизм черновиком', async () => {
     const response = await editor.post('/api/mechanisms', {
       title: 'Определение нормы срока подбора',
-      category_code: 'Расчёт',
+      category_code: 'Расчет',
       summary: 'Константа с переопределением по городу',
     });
 
@@ -38,7 +38,7 @@ describe('CRUD механизмов', () => {
   it('не принимает summary длиннее 200 символов', async () => {
     const response = await editor.post('/api/mechanisms', {
       title: 'Длинное',
-      category_code: 'Расчёт',
+      category_code: 'Расчет',
       summary: 'я'.repeat(201),
     });
 
@@ -48,7 +48,7 @@ describe('CRUD механизмов', () => {
   it('viewer не может создавать', async () => {
     const response = await viewer.post('/api/mechanisms', {
       title: 'Нельзя',
-      category_code: 'Расчёт',
+      category_code: 'Расчет',
     });
     expect(response.status).toBe(403);
   });
@@ -69,7 +69,7 @@ describe('CRUD механизмов', () => {
     expect(entries.map((entry) => entry.op)).toEqual(['create', 'update']);
   });
 
-  it('на устаревшей версии отдаёт 409 с текущим состоянием', async () => {
+  it('на устаревшей версии отдает 409 с текущим состоянием', async () => {
     const mechanism = await createMechanism(editor);
     await editor.patch(`/api/mechanisms/${mechanism.id}`, { version: 1, title: 'Первый' });
 
@@ -98,7 +98,7 @@ describe('CRUD механизмов', () => {
   it('ищет по заголовку и телу', async () => {
     await createMechanism(editor, {
       title: 'Определение нормы срока подбора',
-      body: 'Значение берётся из константы',
+      body: 'Значение берется из константы',
     });
     await createMechanism(editor, { title: 'Печать заявки', category_code: 'Печать' });
 
@@ -121,7 +121,7 @@ describe('состав участников', () => {
       version: mechanism.version,
       participants: [
         { object_id: constant.id, role_code: 'ЗначениеПоУмолчанию', note: 'база' },
-        { object_id: document.id, role_code: 'Приёмник' },
+        { object_id: document.id, role_code: 'Приемник' },
       ],
     });
 
@@ -186,7 +186,7 @@ describe('состав участников', () => {
     expect(await countChanges()).toBe(before + 1);
   });
 
-  it('на устаревшей версии отдаёт 409 и не меняет состав', async () => {
+  it('на устаревшей версии отдает 409 и не меняет состав', async () => {
     const mechanism = await createMechanism(editor);
     const object = await createObject(editor);
 
@@ -231,14 +231,14 @@ describe('состав участников', () => {
       version: 1,
       participants: [
         { object_id: object.id, role_code: 'Источник' },
-        { object_id: object.id, role_code: 'Приёмник' },
+        { object_id: object.id, role_code: 'Приемник' },
       ],
     });
 
     expect(response.status).toBe(200);
   });
 
-  it('не берёт в состав мягко удалённый объект', async () => {
+  it('не берет в состав мягко удаленный объект', async () => {
     const mechanism = await createMechanism(editor);
     const object = await createObject(editor);
     await editor.del(`/api/objects/${object.id}?version=1`);
@@ -263,13 +263,13 @@ describe('состав участников', () => {
     expect(response.status).toBe(400);
   });
 
-  it('отдаёт состав с ролями и направлением', async () => {
+  it('отдает состав с ролями и направлением', async () => {
     const mechanism = await createMechanism(editor);
     const object = await createObject(editor);
 
     await editor.put(`/api/mechanisms/${mechanism.id}/participants`, {
       version: 1,
-      participants: [{ object_id: object.id, role_code: 'Приёмник', note: 'куда пишем' }],
+      participants: [{ object_id: object.id, role_code: 'Приемник', note: 'куда пишем' }],
     });
 
     const card = (await viewer.get(`/api/mechanisms/${mechanism.id}`)).body as {
@@ -277,8 +277,8 @@ describe('состав участников', () => {
     };
 
     expect(card.participants[0]).toMatchObject({
-      role_code: 'Приёмник',
-      role_title: 'Приёмник',
+      role_code: 'Приемник',
+      role_title: 'Приемник',
       direction: 'target',
       note: 'куда пишем',
       full_name: 'Константа.Тестовая',

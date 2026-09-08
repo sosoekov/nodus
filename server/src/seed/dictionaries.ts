@@ -7,7 +7,7 @@ const OBJECT_TYPES: Array<[code: string, title: string, color: string]> = [
   ['РегистрСведений', 'Регистр сведений', '#8b5cd6'],
   ['РегистрНакопления', 'Регистр накопления', '#b054a8'],
   ['Обработка', 'Обработка', '#d97742'],
-  ['Отчёт', 'Отчёт', '#c0483f'],
+  ['Отчет', 'Отчет', '#c0483f'],
   ['Роль', 'Роль', '#7a8794'],
   ['Подсистема', 'Подсистема', '#5a6570'],
   ['ОбщийМодуль', 'Общий модуль', '#4a8f8f'],
@@ -17,7 +17,7 @@ const OBJECT_TYPES: Array<[code: string, title: string, color: string]> = [
 ];
 
 const MECHANISM_CATEGORIES: Array<[code: string, title: string]> = [
-  ['Расчёт', 'Расчёт'],
+  ['Расчет', 'Расчет'],
   ['Заполнение', 'Заполнение'],
   ['Проверка', 'Проверка'],
   ['Обмен', 'Обмен'],
@@ -27,7 +27,7 @@ const MECHANISM_CATEGORIES: Array<[code: string, title: string]> = [
 
 const PARTICIPANT_ROLES: Array<[code: string, title: string, direction: string]> = [
   ['Источник', 'Источник', 'source'],
-  ['Приёмник', 'Приёмник', 'target'],
+  ['Приемник', 'Приемник', 'target'],
   ['Параметр', 'Параметр', 'source'],
   ['Условие', 'Условие', 'source'],
   ['Переопределение', 'Переопределение', 'source'],

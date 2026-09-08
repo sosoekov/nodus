@@ -39,7 +39,7 @@ interface ListQuery {
   offset?: number;
 }
 
-/** Объект нельзя спрятать, пока на него кто-то ссылается: иначе в графе останутся висячие рёбра. */
+/** Объект нельзя спрятать, пока на него кто-то ссылается: иначе в графе останутся висячие ребра. */
 async function assertDeletable(id: string): Promise<void> {
   const { rows: mechanisms } = await pool.query<{ id: string; title: string }>(
     `SELECT DISTINCT m.id, m.title
@@ -100,7 +100,7 @@ export async function objectRoutes(app: FastifyInstance): Promise<void> {
       if (tag) conditions.push(`tags @> ARRAY[${bind(tag)}]::text[]`);
 
       // Полнотекстовый поиск ловит слова целиком, ILIKE по триграммному индексу —
-      // куски имён вроде «НормыДней». Нужны оба.
+      // куски имен вроде «НормыДней». Нужны оба.
       const trimmed = q?.trim();
       let rank = '';
       if (trimmed) {

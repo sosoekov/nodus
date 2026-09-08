@@ -42,7 +42,7 @@ export async function createObject(client: Api, overrides: Json = {}): Promise<J
 export async function createMechanism(client: Api, overrides: Json = {}): Promise<Json> {
   const response = await client.post('/api/mechanisms', {
     title: 'Тестовый механизм',
-    category_code: 'Расчёт',
+    category_code: 'Расчет',
     ...overrides,
   });
   if (response.status !== 201) {

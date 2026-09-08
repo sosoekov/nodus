@@ -60,7 +60,7 @@ describe('аутентификация', () => {
     expect(response.statusCode).toBe(401);
   });
 
-  it('находит пользователя без учёта регистра email', async () => {
+  it('находит пользователя без учета регистра email', async () => {
     const user = await createUser('viewer', 'mixed.case@test.local');
 
     const response = await app.inject({
@@ -72,7 +72,7 @@ describe('аутентификация', () => {
     expect(response.statusCode).toBe(200);
   });
 
-  it('отдаёт текущего пользователя по cookie и 401 без неё', async () => {
+  it('отдает текущего пользователя по cookie и 401 без нее', async () => {
     const cookie = await loginAs(app, 'admin');
 
     const anonymous = await app.inject({ method: 'GET', url: '/api/auth/me' });
@@ -114,7 +114,7 @@ describe('аутентификация', () => {
     expect(response.statusCode).toBe(401);
   });
 
-  it('удалённый пользователь теряет доступ по старой cookie', async () => {
+  it('удаленный пользователь теряет доступ по старой cookie', async () => {
     const user = await createUser('editor');
     const cookie = await login(app, user.email, user.password);
 

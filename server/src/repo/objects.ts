@@ -103,8 +103,8 @@ export async function findObject(db: Db, id: string): Promise<ObjectRow | null> 
 }
 
 /**
- * Инвариант 3: правка идёт только через сверку версии. Ноль затронутых строк —
- * либо запись успели поменять, либо удалить; в первом случае отдаём 409 с
+ * Инвариант 3: правка идет только через сверку версии. Ноль затронутых строк —
+ * либо запись успели поменять, либо удалить; в первом случае отдаем 409 с
  * текущим состоянием, во втором 404.
  */
 export async function updateObject(
@@ -159,6 +159,6 @@ export async function softDeleteObject(
 
 async function staleObject(client: PoolClient, id: string): Promise<Error> {
   const current = await findObject(client, id);
-  if (!current) return notFound('Объект не найден или уже удалён');
-  return conflict('Объект изменён другим пользователем', { current });
+  if (!current) return notFound('Объект не найден или уже удален');
+  return conflict('Объект изменен другим пользователем', { current });
 }
