@@ -17,13 +17,15 @@ export async function createUser(
   role: Role,
   email = `${role}@test.local`,
   password = 'secret',
-): Promise<{ id: string; email: string; password: string; role: Role }> {
+): Promise<{ id: string; email: string; name: string; password: string; role: Role }> {
   const normalized = email.toLowerCase();
+  // Имя из локальной части адреса: по нему тесты отличают, кто держит блокировку.
+  const name = normalized.split('@')[0];
   const { rows } = await pool.query<{ id: string }>(
     'INSERT INTO users (email, name, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING id',
-    [normalized, role, await hashPassword(password), role],
+    [normalized, name, await hashPassword(password), role],
   );
-  return { id: rows[0].id, email: normalized, password, role };
+  return { id: rows[0].id, email: normalized, name, password, role };
 }
 
 export async function makeApp(): Promise<FastifyInstance> {
