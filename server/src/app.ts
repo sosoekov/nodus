@@ -6,6 +6,7 @@ import { pool } from './db';
 import { HttpError } from './errors';
 import { changeRoutes } from './routes/changes';
 import { dictionaryRoutes } from './routes/dictionaries';
+import { graphRoutes } from './routes/graph';
 import { eventRoutes } from './routes/events';
 import { lockRoutes } from './routes/locks';
 import { mechanismRoutes } from './routes/mechanisms';
@@ -57,6 +58,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(dictionaryRoutes);
   await app.register(objectRoutes);
   await app.register(mechanismRoutes);
+  await app.register(graphRoutes);
   await app.register(changeRoutes);
   await app.register(eventRoutes);
   await app.register(lockRoutes);

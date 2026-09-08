@@ -123,11 +123,12 @@ export function ObjectCardPage() {
               Описание
             </h2>
             <Markdown>{object.description}</Markdown>
-            {can('editor') ? (
-              <Button className="mt-3" onClick={() => setEditing(true)}>
-                Редактировать
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Button variant="primary" onClick={() => navigate(`/graph/${object.id}`)}>
+                Локальный граф
               </Button>
-            ) : null}
+              {can('editor') ? <Button onClick={() => setEditing(true)}>Редактировать</Button> : null}
+            </div>
           </section>
         )}
 

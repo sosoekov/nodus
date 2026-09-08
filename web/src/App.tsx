@@ -2,9 +2,11 @@ import { Link, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { LoginPage } from './auth/LoginPage';
 import { useAuth } from './auth/AuthContext';
 import { Button, Spinner } from './components/ui';
+import { GraphProvider } from './graph/store';
 import { DictionaryProvider } from './hooks/useDictionaries';
 import { LiveProvider, useLive } from './hooks/useLiveChanges';
 import { BulkImportPage } from './pages/BulkImportPage';
+import { LocalGraphPage } from './pages/LocalGraphPage';
 import { MechanismEditorPage } from './pages/MechanismEditorPage';
 import { ObjectCardPage } from './pages/ObjectCardPage';
 import { SearchPage } from './pages/SearchPage';
@@ -18,7 +20,8 @@ export function App() {
   return (
     <DictionaryProvider>
       <LiveProvider>
-        <div className="flex min-h-full flex-col">
+        <GraphProvider>
+          <div className="flex min-h-full flex-col">
           <TopBar />
           <main className="flex-1">
             <Routes>
@@ -27,10 +30,12 @@ export function App() {
               <Route path="/objects/:id" element={<ObjectCardPage />} />
               <Route path="/mechanisms/new" element={<MechanismEditorPage />} />
               <Route path="/mechanisms/:id" element={<MechanismEditorPage />} />
+              <Route path="/graph/:id" element={<LocalGraphPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>
-        </div>
+          </div>
+        </GraphProvider>
       </LiveProvider>
     </DictionaryProvider>
   );
