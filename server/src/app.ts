@@ -8,9 +8,11 @@ import { changeRoutes } from './routes/changes';
 import { dictionaryRoutes } from './routes/dictionaries';
 import { graphRoutes } from './routes/graph';
 import { eventRoutes } from './routes/events';
+import { layoutRoutes } from './routes/layout';
 import { lockRoutes } from './routes/locks';
 import { mechanismRoutes } from './routes/mechanisms';
 import { objectRoutes } from './routes/objects';
+import { queueRoutes } from './routes/queue';
 import { spaRoutes } from './routes/spa';
 
 /** Ограничения БД — часть контракта, а не «внутренняя ошибка»: переводим их в 4xx. */
@@ -62,6 +64,8 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(changeRoutes);
   await app.register(eventRoutes);
   await app.register(lockRoutes);
+  await app.register(queueRoutes);
+  await app.register(layoutRoutes);
 
   app.get('/api/health', async () => {
     await pool.query('SELECT 1');

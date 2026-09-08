@@ -8,6 +8,7 @@ export interface GraphObject {
   status: ObjectStatus;
   tags: string[];
   parent_id: string | null;
+  subsystem: string | null;
   x: number | null;
   y: number | null;
   pinned: boolean | null;

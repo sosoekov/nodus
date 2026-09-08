@@ -6,9 +6,13 @@ import { GraphProvider } from './graph/store';
 import { DictionaryProvider } from './hooks/useDictionaries';
 import { LiveProvider, useLive } from './hooks/useLiveChanges';
 import { BulkImportPage } from './pages/BulkImportPage';
+import { FullGraphPage } from './pages/FullGraphPage';
+import { ImpactPage } from './pages/ImpactPage';
 import { LocalGraphPage } from './pages/LocalGraphPage';
 import { MechanismEditorPage } from './pages/MechanismEditorPage';
 import { ObjectCardPage } from './pages/ObjectCardPage';
+import { PathsPage } from './pages/PathsPage';
+import { QueuePage } from './pages/QueuePage';
 import { SearchPage } from './pages/SearchPage';
 
 export function App() {
@@ -30,7 +34,11 @@ export function App() {
               <Route path="/objects/:id" element={<ObjectCardPage />} />
               <Route path="/mechanisms/new" element={<MechanismEditorPage />} />
               <Route path="/mechanisms/:id" element={<MechanismEditorPage />} />
+              <Route path="/graph" element={<FullGraphPage />} />
               <Route path="/graph/:id" element={<LocalGraphPage />} />
+              <Route path="/paths" element={<PathsPage />} />
+              <Route path="/impact/:id" element={<ImpactPage />} />
+              <Route path="/queue" element={<QueuePage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>
@@ -52,11 +60,24 @@ function TopBar() {
         Nodus
       </Link>
 
-      {location.pathname !== '/' ? (
-        <Link to="/" className="text-sm text-[var(--color-muted)] hover:underline">
-          поиск
-        </Link>
-      ) : null}
+      <nav className="flex gap-3 text-sm text-[var(--color-muted)]">
+        {(
+          [
+            ['/', 'поиск'],
+            ['/graph', 'граф'],
+            ['/paths', 'пути'],
+            ['/queue', 'очередь'],
+          ] as Array<[string, string]>
+        ).map(([path, label]) => (
+          <Link
+            key={path}
+            to={path}
+            className={`hover:underline ${location.pathname === path ? 'font-medium text-[var(--color-ink)]' : ''}`}
+          >
+            {label}
+          </Link>
+        ))}
+      </nav>
 
       <span
         className="ml-auto flex items-center gap-1.5 text-xs text-[var(--color-muted)]"

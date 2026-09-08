@@ -25,9 +25,11 @@ interface Props {
   runLayout: boolean;
   onSelect(selection: Selection): void;
   onHoverEdge?(edge: { mechanismIds: string[]; x: number; y: number } | null): void;
+  /** Узел перетащили — координаты уходят в базу как закрепленные. */
+  onMoveNode?(node: string, x: number, y: number): void;
 }
 
-export function GraphView({ graph, runLayout, onSelect, onHoverEdge }: Props) {
+export function GraphView({ graph, runLayout, onSelect, onHoverEdge, onMoveNode }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const sigmaRef = useRef<Sigma<NodeAttrs, EdgeAttrs> | null>(null);
 
@@ -35,10 +37,13 @@ export function GraphView({ graph, runLayout, onSelect, onHoverEdge }: Props) {
   // пересоздавать sigma на каждое движение мыши.
   const hoveredRef = useRef<string | null>(null);
   const fixedRef = useRef<string | null>(null);
+  const draggedRef = useRef<string | null>(null);
   const onSelectRef = useRef(onSelect);
   const onHoverEdgeRef = useRef(onHoverEdge);
+  const onMoveNodeRef = useRef(onMoveNode);
   onSelectRef.current = onSelect;
   onHoverEdgeRef.current = onHoverEdge;
+  onMoveNodeRef.current = onMoveNode;
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -164,13 +169,52 @@ export function GraphView({ graph, runLayout, onSelect, onHoverEdge }: Props) {
     renderer.on('leaveEdge', () => onHoverEdgeRef.current?.(null));
 
     renderer.on('clickStage', () => {
+      // Отпускание после перетаскивания приходит сюда же — сбрасывать выделение
+      // на нем неправильно.
+      if (draggedRef.current) return;
       fixedRef.current = null;
       onSelectRef.current(null);
       onHoverEdgeRef.current?.(null);
       refresh();
     });
 
+    const captor = renderer.getMouseCaptor();
+
+    renderer.on('downNode', ({ node }) => {
+      if (!onMoveNodeRef.current) return;
+      draggedRef.current = node;
+    });
+
+    const onBodyMove = (event: { x: number; y: number; preventSigmaDefault(): void }) => {
+      const node = draggedRef.current;
+      if (!node) return;
+      // Пока тянем узел, камера ездить не должна, иначе он убегает вместе с полотном.
+      const position = renderer.viewportToGraph(event);
+      graph.setNodeAttribute(node, 'x', position.x);
+      graph.setNodeAttribute(node, 'y', position.y);
+      event.preventSigmaDefault();
+    };
+
+    const onDrop = () => {
+      const node = draggedRef.current;
+      if (!node) return;
+      onMoveNodeRef.current?.(
+        node,
+        graph.getNodeAttribute(node, 'x') as number,
+        graph.getNodeAttribute(node, 'y') as number,
+      );
+      // Сброс после текущего цикла: clickStage приходит следом за отпусканием.
+      setTimeout(() => {
+        draggedRef.current = null;
+      }, 0);
+    };
+
+    captor.on('mousemovebody', onBodyMove);
+    captor.on('mouseup', onDrop);
+
     return () => {
+      captor.removeListener('mousemovebody', onBodyMove);
+      captor.removeListener('mouseup', onDrop);
       renderer.kill();
       sigmaRef.current = null;
       hoveredRef.current = null;

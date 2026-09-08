@@ -127,6 +127,12 @@ export function ObjectCardPage() {
               <Button variant="primary" onClick={() => navigate(`/graph/${object.id}`)}>
                 Локальный граф
               </Button>
+              <Button onClick={() => navigate(`/impact/${object.id}?direction=downstream`)}>
+                На что влияет
+              </Button>
+              <Button onClick={() => navigate(`/impact/${object.id}?direction=upstream`)}>
+                От чего зависит
+              </Button>
               {can('editor') ? <Button onClick={() => setEditing(true)}>Редактировать</Button> : null}
             </div>
           </section>

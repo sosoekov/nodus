@@ -248,7 +248,9 @@ export function buildGraph(
 
   graph.forEachNode((node) => {
     const ratio = graph.degree(node) / maxDegree;
-    const base = 4 + ratio * 10;
+    // Нижняя граница заметно больше нуля: изолированный узел без связей
+    // иначе превращается в еле различимую точку, особенно если он приглушен.
+    const base = 6 + ratio * 10;
     // Корень локального графа заметен размером, а не приглушением остальных:
     // выцветший на 15% граф при открытии нечитаем, а смотрят именно на него.
     graph.setNodeAttribute(node, 'size', node === rootId ? base * 1.6 : base);

@@ -17,7 +17,10 @@ export async function graphRoutes(app: FastifyInstance): Promise<void> {
       await client.query('BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY');
 
       const objects = await client.query(
-        `SELECT o.id, o.slug, o.name, o.type_code, o.status, o.tags, o.parent_id,
+        // subsystem сверх списка полей из ТЗ: без него фильтр по подсистеме на
+        // полном графе нечем считать на клиенте. Поле легкое, в отличие от
+        // description и body, ради которых ограничение и вводилось.
+        `SELECT o.id, o.slug, o.name, o.type_code, o.status, o.tags, o.parent_id, o.subsystem,
                 l.x, l.y, l.pinned
            FROM objects o
            LEFT JOIN layout l ON l.object_id = o.id

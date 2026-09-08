@@ -18,6 +18,7 @@ interface Snapshot {
     status: string;
     tags: string[];
     parent_id: string | null;
+    subsystem: string | null;
     x: number | null;
     y: number | null;
   }>;
@@ -121,6 +122,14 @@ describe('снапшот графа', () => {
 
     // Иначе в графе осталось бы ребро к узлу, которого нет в выдаче.
     expect((await snapshot()).participants).toHaveLength(0);
+  });
+
+  it('отдает subsystem: без него фильтр полного графа нечем считать', async () => {
+    await createObject(editor, { subsystem: 'ПодборПерсонала' });
+
+    const result = await snapshot();
+
+    expect(result.objects[0].subsystem).toBe('ПодборПерсонала');
   });
 
   it('отдает parent_id, чтобы реквизиты можно было свернуть в родителя', async () => {
