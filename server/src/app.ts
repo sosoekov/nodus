@@ -5,6 +5,16 @@ import { config } from './config';
 import { pool } from './db';
 import { HttpError } from './errors';
 import { dictionaryRoutes } from './routes/dictionaries';
+import { mechanismRoutes } from './routes/mechanisms';
+import { objectRoutes } from './routes/objects';
+
+/** Ограничения БД — часть контракта, а не «внутренняя ошибка»: переводим их в 4xx. */
+const PG_ERROR_STATUS: Record<string, { status: number; code: string; message: string }> = {
+  '23503': { status: 400, code: 'bad_request', message: 'Ссылка на несуществующую запись' },
+  '23505': { status: 409, code: 'conflict', message: 'Такая запись уже есть' },
+  '23514': { status: 400, code: 'bad_request', message: 'Значение нарушает ограничение' },
+  '22P02': { status: 400, code: 'bad_request', message: 'Некорректный формат значения' },
+};
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -23,6 +33,17 @@ export async function buildApp(): Promise<FastifyInstance> {
         .code(400)
         .send({ error: 'bad_request', message: error.message, details: error.validation });
     }
+
+    const mapped = PG_ERROR_STATUS[(error as { code?: string }).code ?? ''];
+    if (mapped) {
+      request.log.warn({ err: error }, 'ограничение БД');
+      return reply.code(mapped.status).send({
+        error: mapped.code,
+        message: mapped.message,
+        details: { constraint: (error as { constraint?: string }).constraint, detail: error.message },
+      });
+    }
+
     request.log.error(error);
     return reply.code(500).send({ error: 'internal', message: 'Внутренняя ошибка' });
   });
@@ -30,6 +51,8 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(authPlugin);
   await app.register(authRoutes);
   await app.register(dictionaryRoutes);
+  await app.register(objectRoutes);
+  await app.register(mechanismRoutes);
 
   app.get('/api/health', async () => {
     await pool.query('SELECT 1');
