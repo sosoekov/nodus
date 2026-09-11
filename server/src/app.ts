@@ -4,6 +4,7 @@ import { authRoutes } from './auth/routes';
 import { config } from './config';
 import { pool } from './db';
 import { HttpError } from './errors';
+import { authorRoutes } from './routes/authors';
 import { changeRoutes } from './routes/changes';
 import { dictionaryRoutes } from './routes/dictionaries';
 import { graphRoutes } from './routes/graph';
@@ -58,6 +59,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(authPlugin);
   await app.register(authRoutes);
   await app.register(dictionaryRoutes);
+  await app.register(authorRoutes);
   await app.register(objectRoutes);
   await app.register(mechanismRoutes);
   await app.register(graphRoutes);

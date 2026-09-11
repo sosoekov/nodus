@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ApiError, api } from '../api/client';
 import type { ObjectCard, ObjectStatus } from '../api/types';
 import { LockBanner } from '../components/LockBanner';
+import { MetaFooter } from '../components/MetaFooter';
 import {
   Button,
   ErrorNote,
@@ -159,6 +160,12 @@ export function ObjectCardPage() {
             </ul>
           </section>
         ) : null}
+
+        <MetaFooter
+          authorName={object.author_name}
+          createdAt={object.created_at}
+          updatedAt={object.updated_at}
+        />
 
         <section>
           <h2 className="mb-1.5 text-xs font-medium tracking-wide text-[var(--color-muted)] uppercase">

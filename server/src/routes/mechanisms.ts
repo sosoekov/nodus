@@ -3,6 +3,11 @@ import { MECHANISM_COLUMNS } from '../columns';
 import { pool, withTransaction } from '../db';
 import { badRequest, notFound } from '../errors';
 import {
+  AUTHOR_DATE_PROPERTIES,
+  type AuthorDateQuery,
+  applyAuthorDateFilters,
+} from './list-filters';
+import {
   findMechanism,
   insertMechanism,
   listParticipants,
@@ -29,7 +34,7 @@ const ID_PARAMS = {
   properties: { id: { type: 'string', format: 'uuid' } },
 } as const;
 
-interface ListQuery {
+interface ListQuery extends AuthorDateQuery {
   q?: string;
   category?: string;
   status?: string;
@@ -52,6 +57,7 @@ export async function mechanismRoutes(app: FastifyInstance): Promise<void> {
             q: { type: 'string', maxLength: 300 },
             category: { type: 'string', maxLength: 100 },
             status: { type: 'string', enum: ['draft', 'active', 'deprecated'] },
+            ...AUTHOR_DATE_PROPERTIES,
             limit: { type: 'integer', minimum: 1, maximum: 500, default: 50 },
             offset: { type: 'integer', minimum: 0, default: 0 },
           },
@@ -68,6 +74,8 @@ export async function mechanismRoutes(app: FastifyInstance): Promise<void> {
       if (category) conditions.push(`category_code = ${bind(category)}`);
       if (status) conditions.push(`status = ${bind(status)}`);
 
+      applyAuthorDateFilters(conditions, bind, request.query);
+
       const trimmed = q?.trim();
       let rank = '';
       if (trimmed) {
@@ -81,7 +89,9 @@ export async function mechanismRoutes(app: FastifyInstance): Promise<void> {
       }
 
       const { rows } = await pool.query<MechanismRow>(
-        `SELECT ${MECHANISM_COLUMNS} FROM mechanisms
+        `SELECT ${MECHANISM_COLUMNS},
+                (SELECT u.name FROM users u WHERE u.id = mechanisms.created_by) AS author_name
+           FROM mechanisms
           WHERE ${conditions.join(' AND ')}
           ORDER BY ${rank} title
           LIMIT $${values.length + 1} OFFSET $${values.length + 2}`,
@@ -104,6 +114,11 @@ export async function mechanismRoutes(app: FastifyInstance): Promise<void> {
       const mechanism = await findMechanism(pool, request.params.id);
       if (!mechanism) throw notFound('Механизм не найден');
 
+      const { rows: authors } = await pool.query<{ author_name: string | null }>(
+        'SELECT name AS author_name FROM users WHERE id = $1',
+        [mechanism.created_by],
+      );
+
       const { rows: participants } = await pool.query(
         `SELECT p.id, p.object_id, p.role_code, p.note, p.sort_order,
                 r.title AS role_title, r.direction,
@@ -116,7 +131,10 @@ export async function mechanismRoutes(app: FastifyInstance): Promise<void> {
         [request.params.id],
       );
 
-      return { mechanism, participants };
+      return {
+        mechanism: { ...mechanism, author_name: authors[0]?.author_name ?? null },
+        participants,
+      };
     },
   );
 

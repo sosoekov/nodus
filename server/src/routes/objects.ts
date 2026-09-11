@@ -3,6 +3,12 @@ import { OBJECT_COLUMNS } from '../columns';
 import { pool, withTransaction } from '../db';
 import { badRequest, conflict, notFound } from '../errors';
 import {
+  AUTHOR_DATE_PROPERTIES,
+  type AuthorDateQuery,
+  applyAuthorDateFilters,
+  parseTags,
+} from './list-filters';
+import {
   findObject,
   insertObject,
   type ObjectInput,
@@ -29,12 +35,13 @@ const ID_PARAMS = {
   properties: { id: { type: 'string', format: 'uuid' } },
 } as const;
 
-interface ListQuery {
+interface ListQuery extends AuthorDateQuery {
   q?: string;
   type?: string;
   status?: string;
   subsystem?: string;
   tag?: string;
+  tags?: string;
   limit?: number;
   offset?: number;
 }
@@ -81,6 +88,8 @@ export async function objectRoutes(app: FastifyInstance): Promise<void> {
             status: { type: 'string', enum: ['stub', 'active', 'deprecated'] },
             subsystem: { type: 'string', maxLength: 200 },
             tag: { type: 'string', maxLength: 100 },
+            tags: { type: 'string', maxLength: 1000 },
+            ...AUTHOR_DATE_PROPERTIES,
             limit: { type: 'integer', minimum: 1, maximum: 500, default: 50 },
             offset: { type: 'integer', minimum: 0, default: 0 },
           },
@@ -88,7 +97,7 @@ export async function objectRoutes(app: FastifyInstance): Promise<void> {
       },
     },
     async (request) => {
-      const { q, type, status, subsystem, tag, limit = 50, offset = 0 } = request.query;
+      const { q, type, status, subsystem, tag, tags, limit = 50, offset = 0 } = request.query;
       const conditions = ['deleted_at IS NULL'];
       const values: unknown[] = [];
 
@@ -97,7 +106,14 @@ export async function objectRoutes(app: FastifyInstance): Promise<void> {
       if (type) conditions.push(`type_code = ${bind(type)}`);
       if (status) conditions.push(`status = ${bind(status)}`);
       if (subsystem) conditions.push(`subsystem = ${bind(subsystem)}`);
+
+      // `tag` — один тег, `tags` — любой из перечисленных. Первый оставлен
+      // рабочим: на него уже есть ссылки со срезами.
       if (tag) conditions.push(`tags @> ARRAY[${bind(tag)}]::text[]`);
+      const anyTags = parseTags(tags);
+      if (anyTags.length) conditions.push(`tags && ${bind(anyTags)}::text[]`);
+
+      applyAuthorDateFilters(conditions, bind, request.query);
 
       // Полнотекстовый поиск ловит слова целиком, ILIKE по триграммному индексу —
       // куски имен вроде «НормыДней». Нужны оба.
@@ -113,8 +129,13 @@ export async function objectRoutes(app: FastifyInstance): Promise<void> {
         rank = `ts_rank(search_vector, websearch_to_tsquery('russian', ${queryParam})) DESC,`;
       }
 
+      // Имя автора скалярным подзапросом, а не join: условия фильтра написаны
+      // неквалифицированными именами колонок, а users.id/name/created_at с
+      // ними столкнулись бы.
       const { rows } = await pool.query<ObjectRow>(
-        `SELECT ${OBJECT_COLUMNS} FROM objects
+        `SELECT ${OBJECT_COLUMNS},
+                (SELECT u.name FROM users u WHERE u.id = objects.created_by) AS author_name
+           FROM objects
           WHERE ${conditions.join(' AND ')}
           ORDER BY ${rank} name
           LIMIT $${values.length + 1} OFFSET $${values.length + 2}`,
@@ -167,6 +188,11 @@ export async function objectRoutes(app: FastifyInstance): Promise<void> {
       const object = await findObject(pool, request.params.id);
       if (!object) throw notFound('Объект не найден');
 
+      const { rows: authors } = await pool.query<{ author_name: string | null }>(
+        'SELECT name AS author_name FROM users WHERE id = $1',
+        [object.created_by],
+      );
+
       const [parent, children, participations] = await Promise.all([
         object.parent_id ? findObject(pool, object.parent_id) : Promise.resolve(null),
         pool
@@ -216,7 +242,12 @@ export async function objectRoutes(app: FastifyInstance): Promise<void> {
         });
       }
 
-      return { object, parent, children, mechanisms_by_role: [...groups.values()] };
+      return {
+        object: { ...object, author_name: authors[0]?.author_name ?? null },
+        parent,
+        children,
+        mechanisms_by_role: [...groups.values()],
+      };
     },
   );
 

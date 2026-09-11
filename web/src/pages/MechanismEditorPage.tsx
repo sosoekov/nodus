@@ -8,7 +8,8 @@ import type {
   ParticipantInput,
 } from '../api/types';
 import { LockBanner } from '../components/LockBanner';
-import { ObjectPicker } from '../components/ObjectPicker';
+import { MetaFooter } from '../components/MetaFooter';
+import { ParticipantsTable, type ParticipantRow } from '../components/ParticipantsTable';
 import {
   Button,
   ErrorNote,
@@ -25,17 +26,7 @@ import { useOnChange } from '../hooks/useLiveChanges';
 import { MECHANISM_TEMPLATES, type MechanismTemplate } from '../lib/templates';
 
 /** Строка таблицы участников. Объект может быть еще не выбран — это шаблон. */
-interface Row {
-  key: string;
-  object: {
-    id: string;
-    name: string;
-    full_name: string | null;
-    type_code: string;
-  } | null;
-  role_code: string;
-  note: string;
-}
+type Row = ParticipantRow;
 
 let rowCounter = 0;
 const newKey = () => `row-${(rowCounter += 1)}`;
@@ -384,100 +375,24 @@ export function MechanismEditorPage() {
           <p className="rounded border border-dashed border-[var(--color-line)] px-3 py-4 text-sm text-[var(--color-muted)]">
             Пока никого. Механизм без участников — это просто заметка: он не попадет в граф.
           </p>
-        ) : (
-          <ul className="space-y-2">
-            {rows.map((row, index) => (
-              <li
-                key={row.key}
-                className="grid items-start gap-2 rounded border border-[var(--color-line)] p-2 lg:grid-cols-[1fr_11rem_1fr_auto]"
-              >
-                <ObjectPicker
-                  disabled={readOnly}
-                  value={row.object}
-                  onSelect={(object) =>
-                    setRows((current) =>
-                      current.map((item) => (item.key === row.key ? { ...item, object } : item)),
-                    )
-                  }
-                  onClear={() =>
-                    setRows((current) =>
-                      current.map((item) =>
-                        item.key === row.key ? { ...item, object: null } : item,
-                      ),
-                    )
-                  }
-                />
+        ) : null}
 
-                <select
-                  className={inputClass}
-                  disabled={readOnly}
-                  value={row.role_code}
-                  onChange={(e) =>
-                    setRows((current) =>
-                      current.map((item) =>
-                        item.key === row.key ? { ...item, role_code: e.target.value } : item,
-                      ),
-                    )
-                  }
-                >
-                  {participant_roles.map((role) => (
-                    <option key={role.code} value={role.code}>
-                      {role.title}
-                    </option>
-                  ))}
-                </select>
-
-                <input
-                  className={inputClass}
-                  disabled={readOnly}
-                  placeholder="чем именно участвует"
-                  value={row.note}
-                  onChange={(e) =>
-                    setRows((current) =>
-                      current.map((item) =>
-                        item.key === row.key ? { ...item, note: e.target.value } : item,
-                      ),
-                    )
-                  }
-                />
-
-                <div className="flex gap-1">
-                  <Button
-                    variant="ghost"
-                    disabled={readOnly || index === 0}
-                    title="выше"
-                    onClick={() => setRows((current) => swap(current, index, index - 1))}
-                  >
-                    ↑
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    disabled={readOnly || index === rows.length - 1}
-                    title="ниже"
-                    onClick={() => setRows((current) => swap(current, index, index + 1))}
-                  >
-                    ↓
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    disabled={readOnly}
-                    title="убрать"
-                    onClick={() =>
-                      setRows((current) => current.filter((item) => item.key !== row.key))
-                    }
-                  >
-                    ✕
-                  </Button>
-                </div>
-
-                <p className="text-xs text-[var(--color-muted)] lg:col-span-4">
-                  {directionHint(roleByCode.get(row.role_code)?.direction)}
-                </p>
-              </li>
-            ))}
-          </ul>
-        )}
+        <ParticipantsTable
+          rows={rows}
+          roles={participant_roles}
+          roleByCode={roleByCode}
+          readOnly={readOnly}
+          onChange={setRows}
+        />
       </section>
+
+      {mechanism ? (
+        <MetaFooter
+          authorName={mechanism.author_name}
+          createdAt={mechanism.created_at}
+          updatedAt={mechanism.updated_at}
+        />
+      ) : null}
 
       <div className="flex gap-2">
         <Button
@@ -496,19 +411,6 @@ export function MechanismEditorPage() {
       </div>
     </div>
   );
-}
-
-function swap<T>(list: T[], from: number, to: number): T[] {
-  const copy = [...list];
-  [copy[from], copy[to]] = [copy[to], copy[from]];
-  return copy;
-}
-
-function directionHint(direction?: string): string {
-  if (direction === 'source') return 'источник: влияет на результат механизма';
-  if (direction === 'target') return 'приемник: в него попадает результат';
-  if (direction === 'neutral') return 'участник: направление не задано';
-  return '';
 }
 
 /** Строки без выбранного объекта в состав не идут — это незаполненные заготовки. */

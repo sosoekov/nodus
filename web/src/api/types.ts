@@ -36,6 +36,14 @@ export interface Dictionaries {
   participant_roles: ParticipantRole[];
 }
 
+export interface Author {
+  id: string;
+  name: string;
+  email: string;
+  object_count: number;
+  mechanism_count: number;
+}
+
 export interface ConfigObject {
   id: string;
   slug: string;
@@ -48,7 +56,11 @@ export interface ConfigObject {
   description: string | null;
   status: ObjectStatus;
   version: number;
+  created_by: string | null;
+  /** Имя того, кто завел запись. Приходит в списке и карточке. */
+  author_name: string | null;
   created_at: string;
+  updated_by: string | null;
   updated_at: string;
   deleted_at: string | null;
 }
@@ -61,7 +73,10 @@ export interface Mechanism {
   body: string | null;
   status: MechanismStatus;
   version: number;
+  created_by: string | null;
+  author_name: string | null;
   created_at: string;
+  updated_by: string | null;
   updated_at: string;
   deleted_at: string | null;
 }
